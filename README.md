@@ -20,8 +20,8 @@
 
 1. **Clone the repository**
 ```bash
-git clone <your-repo-url>
-cd open_source_infer
+git clone https://github.com/showlab/Edit2Perceive.git
+cd Edit2Perceive
 ```
 
 2. **Install dependencies**
@@ -29,14 +29,14 @@ cd open_source_infer
 pip install -r requirements.txt
 ```
 
-3. **Download FLUX.1-Kontext Model**
+3. **Download Base Model**
 
-Download the FLUX.1-Kontext-dev model and place it in your desired directory:
+Download the [FLUX.1-Kontext-dev](https://huggingface.co/black-forest-labs/FLUX.1-Kontext-dev) model and place it in your desired directory:
 ```
 /path/to/FLUX.1-Kontext-dev/
 ```
 
-4. **Download Task-Specific Models**
+4. **Download Our Models**
 
 Download our pre-trained models and place them in the `ckpts/` directory:
 ```
