@@ -15,7 +15,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>
 
 from __future__ import absolute_import, division, print_function
-from diffsynth.utils.metric import compute_normal_metrics
+from utils.metric import compute_normal_metrics
 import os
 os.environ['OPENCV_IO_ENABLE_OPENEXR'] = '1'
 import argparse

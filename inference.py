@@ -9,16 +9,20 @@ from PIL import Image
 from pipelines.flux_image_new import FluxImagePipeline
 from models.utils import load_state_dict
 from trainers.unified_dataset import UnifiedDataset, gen_points
-from utils.eval_multiple_datasets import parse_flux_model_configs
+# from utils.eval_multiple_datasets import parse_flux_model_configs
+from trainers.utils import parse_flux_model_configs
 import matplotlib.pyplot as plt
-
+from models.flux_dit import FluxDiTStateDictConverter
+converter = FluxDiTStateDictConverter()
 # 模型配置
 MODEL_CONFIGS = {
-    "depth": "ckpts/edit2percieve_depth.safetensors",
-    "normal": "ckpts/edit2percieve_normal.safetensors",
-    "matting": "ckpts/edit2percieve_matting.safetensors",
+    "depth": "ckpts/depth.safetensors",
+    "normal": "ckpts/normal.safetensors",
+    "matting": "ckpts/matting.safetensors",
+    "depth_lora": "ckpts/depth_lora.safetensors",
+    "normal_lora": "ckpts/normal_lora.safetensors",
+    "matting_lora": "ckpts/matting_lora.safetensors",
 }
-
 def inference(
     model_root: str,
     task: str,
@@ -45,8 +49,11 @@ def inference(
         device=device,
         model_configs=parse_flux_model_configs(model_root),
     )
-    state_dict = load_state_dict(state_dict_path)
-    pipe.dit.load_state_dict(state_dict)
+    if "lora" in task:
+        pipe.load_lora(pipe.dit, state_dict_path, hotload=False)
+    else:
+        state_dict = load_state_dict(state_dict_path)
+        pipe.dit.load_state_dict(state_dict)
     print("Model loaded successfully!")
     
     # 准备图片列表
@@ -56,7 +63,7 @@ def inference(
         images = list(input_paths)
     
     transform = UnifiedDataset.default_image_operator(height=resolution, width=resolution)
-    
+    task = task.replace("_lora", "")
     # 处理每张图片
     for image_path in images:
         if task in {"depth", "normal"}:
@@ -112,7 +119,7 @@ def inference(
             out_np = (out_np + 1) / 2 * 255.0
             out_np = out_np.astype(np.uint8)
         else:  # matting
-            out_np = ((out_np > 0.5) * 255.0).astype(np.uint8)
+            out_np = (out_np * 255.0).astype(np.uint8)
         
         # 保存结果
         if output_path is None:

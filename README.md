@@ -1,176 +1,87 @@
-# Edit2Percieve AI
 
-⚡ Advanced Multi-Task Visual Intelligence System for Depth Estimation, Normal Map Generation, and Image Matting.
+# Edit2Perceive: Image Editing Diffusion Models Are Strong Dense Perceivers
+*Yiqing Shi, Yiren Song, Mike Zheng Shou*
 
-## 🎯 Features
 
-- **Depth Estimation**: Generate high-quality depth maps from RGB images
-- **Normal Eeneration**: Extract surface normal information from images
-- **Interactive Matting**: Intelligent foreground/background separation
-- **Interactive UI**: Beautiful Gradio-based web interface with real-time visualization
-- **CLI Support**: Command-line interface for batch processing
+[![arXiv](https://img.shields.io/badge/arXiv-2511.18673-b31b1b.svg)](https://arxiv.org/abs/2511.18673)
+[![HuggingFace](https://img.shields.io/badge/Hugging%20Face-model-yellow.svg?logo=huggingface)](https://hf-mirror.com/Seq2Tri/Edit2Perceive/tree/main)
 
-## 📋 Requirements (Recommend)
+![Teaser](samples/teaser.png   )
 
-- Python 3.12
-- CUDA-capable GPU (recommended)
-- 40GB+ VRAM for optimal performance
 
-## 🚀 Installation
+
+## Installation
 
 1. **Clone the repository**
-```bash
-git clone https://github.com/showlab/Edit2Perceive.git
-cd Edit2Perceive
-```
 
-2. **Install dependencies**
-```bash
-pip install -r requirements.txt
-```
+    ```bash
+    git clone https://github.com/showlab/Edit2Perceive.git
+    cd Edit2Perceive
+    conda create -n e2p python=3.12
+    conda activate e2p
+    pip install -r requirements.txt
+    ```
 
-3. **Download Base Model**
+2. **Download Base Model**
 
-Download the [FLUX.1-Kontext-dev](https://huggingface.co/black-forest-labs/FLUX.1-Kontext-dev) model and place it in your desired directory:
-```
-/path/to/FLUX.1-Kontext-dev/
-```
+    Download the [FLUX.1-Kontext-dev](https://huggingface.co/black-forest-labs/FLUX.1-Kontext-dev) model:
+    ```bash
+    export HF_ENDPOINT=https://hf-mirror.com # if huggingface is not available, use this mirror
+    hf download black-forest-labs/FLUX.1-Kontext-dev --exclude "transformer/" --local-dir ./FLUX.1-Kontext-dev
+    ```
+3. **Download Our Models**
 
-4. **Download Our Models**
+    Download our pre-trained models and place them in the `ckpts/` directory. You can either download lora version (small size for fast validation) or full version (best quality but file is large):
+    
+    **Option1** Download LoRA weights
+    ```bash
+    hf download Seq2Tri/Edit2Perceive --local-dir ckpts/ --include "*lora.safetensors"
+    ```
+    **Option2** Download full model weights
+    ```bash
+    hf download Seq2Tri/Edit2Perceive --local-dir ckpts/ --exclude "*lora.safetensors"
+    ```
+    The Final Folder Sturcture should be like this:
+    ```bash
+    ckpts/
+    ├── depth.safetensors
+    ├── depth_lora.safetensors
+    ├── normal.safetensors
+    ├── normal_lora.safetensors
+    ├── matting.safetensors
+    └── matting_lora.safetensors
+    ```
 
-Download our pre-trained models and place them in the `ckpts/` directory:
-```
-ckpts/
-├── edit2percieve_depth.safetensors
-├── edit2percieve_normal.safetensors
-└── edit2percieve_matting.safetensors
-```
-
-## 💻 Usage
-
-### Option 1: Web Interface (Recommended)
-
-Launch the interactive Gradio UI:
+## Quick Start
+### UI
 
 ```bash
 python app.py
 ```
+and then visit `http://localhost:7860`
 
-**Configuration:**
-- Edit the `model_root` path in `app.py` (line 37) to point to your FLUX.1-Kontext model directory
-- Open your browser and navigate to `http://localhost:7860`
-- Upload an image, select a task (Depth/Normal/Matting), and click Execute
-
-**Features:**
-- 🎨 Interactive image editor with brush/eraser tools
-- 🔍 Side-by-side comparison slider
-- ⚙️ Adjustable inference parameters
-- 🖱️ Point-based annotation for matting tasks
-
-### Option 2: Command Line Interface
-
-Run inference without GUI:
+### No UI
 
 ```bash
 python inference.py
 ```
 
-**Configuration:**
-Edit the `__main__` section in `inference.py`:
 
-```python
-if __name__ == "__main__":
-    # Set your model root path
-    model_root = "/path/to/FLUX.1-Kontext-dev"
-    
-    inference(
-        model_root=model_root,
-        task="depth",  # Options: "depth", "normal", "matting"
-        input_paths="samples/cat.jpg"  # Single image or comma-separated paths
-    )
-```
 
-**Parameters:**
-- `model_root`: Path to FLUX.1-Kontext model directory
-- `task`: Task type - `"depth"`, `"normal"`, or `"matting"`
-- `input_paths`: Input image path(s)
-- `resolution`: Processing resolution (default: 768)
-- `num_inference_steps`: Number of diffusion steps (default: 8)
-- `seed`: Random seed for reproducibility (default: 42)
-- `output_path`: Custom output path (optional)
+## Cite
+If you find our work useful in your research please consider citing our paper:
 
-## 📁 Project Structure
-
-```
-open_source_infer/
-├── app.py                  # Gradio web interface
-├── inference.py            # CLI inference script
-├── requirements.txt        # Python dependencies
-├── ckpts/                  # Model checkpoints directory
-│   ├── edit2percieve_depth.safetensors
-│   ├── edit2percieve_normal.safetensors
-│   └── edit2percieve_matting.safetensors
-├── samples/                # Sample images
-├── pipelines/              # Inference pipelines
-├── models/                 # Model architectures
-├── trainers/               # Training utilities
-└── utils/                  # Helper functions
-```
-
-## 🎨 Examples
-
-### Depth Estimation
-```python
-inference(
-    model_root="/path/to/FLUX.1-Kontext-dev",
-    task="depth",
-    input_paths="samples/cat.jpg"
-)
-```
-
-### Normal Map Generation
-```python
-inference(
-    model_root="/path/to/FLUX.1-Kontext-dev",
-    task="normal",
-    input_paths="samples/dog.jpg"
-)
-```
-
-### Image Matting
-```python
-inference(
-    model_root="/path/to/FLUX.1-Kontext-dev",
-    task="matting",
-    input_paths="samples/cat.jpg"
-)
-```
-
-## ⚙️ Model Configuration
-
-The models are configured in `MODEL_CONFIGS` dictionary:
-
-```python
-MODEL_CONFIGS = {
-    "Depth": {
-        "path": "ckpts/edit2percieve_depth.safetensors",
-        "task": "depth"
-    },
-    "Normal": {
-        "path": "ckpts/edit2percieve_normal.safetensors",
-        "task": "normal"
-    },
-    "Matting": {
-        "path": "ckpts/edit2percieve_matting.safetensors",
-        "task": "matting"
-    },
+```Bibtex
+@misc{edit2perceive,
+      title={Edit2Perceive: Image Editing Diffusion Models Are Strong Dense Perceivers}, 
+      author={Yiqing Shi and Yiren Song and Mike Zheng Shou},
+      year={2025},
+      eprint={2511.18673},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2511.18673}, 
 }
 ```
 
-## 🙏 Acknowledgments
-
-This project is built upon the FLUX.1-Kontext model architecture.
-
----
-
-**Present by 🥥🍉**
+## Contact
+If you have any questions, please feel free to contact yqshi@stu.pku.edu.cn

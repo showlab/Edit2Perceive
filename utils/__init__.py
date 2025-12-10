@@ -4,7 +4,6 @@ from PIL import Image
 from einops import repeat, reduce, rearrange
 from typing import Optional, Union
 from dataclasses import dataclass
-from modelscope import snapshot_download
 import numpy as np
 from PIL import Image
 from typing import Optional
@@ -89,7 +88,7 @@ class BasePipeline(torch.nn.Module):
         image = vae_output
         if task == "depth" or task=="matting":
             # image = torch.mean(image, dim=-1) # for depth task, average the 3 channels to
-            image = ((image + 1.) / 2.).clip(-1,1) # for depth task, the output is in range [0, 1]
+            image = ((image.clip(-1,1) + 1.) / 2.) # for depth task, the output is in range [0, 1]
         elif task == "normal":
             image = image / (image.norm(dim=-1, keepdim=True) + 1e-8)
         # image = ((image + 1.) / 2.).clip(0.0, 1.0)
@@ -227,15 +226,6 @@ class ModelConfig:
             # Download
             if self.local_model_path is None:
                 self.local_model_path = "./models"
-            # if not skip_download:
-            #     downloaded_files = glob.glob(self.origin_file_pattern, root_dir=os.path.join(self.local_model_path, self.model_id))
-            #     snapshot_download(
-            #         self.model_id,
-            #         local_dir=os.path.join(self.local_model_path, self.model_id),
-            #         allow_file_pattern=allow_file_pattern,
-            #         ignore_file_pattern=downloaded_files,
-            #         local_files_only=False
-            #     )
             
             # Let rank 1, 2, ... wait for rank 0
             if use_usp:

@@ -1,6 +1,6 @@
 import imageio, os, torch, warnings, torchvision, argparse, json
-from ..utils import ModelConfig
-from ..models.utils import load_state_dict
+from utils import ModelConfig
+from models.utils import load_state_dict
 from peft import LoraConfig, inject_adapter_in_model
 from PIL import Image
 import pandas as pd
@@ -10,10 +10,10 @@ from accelerate.utils import DistributedDataParallelKwargs
 import numpy as np
 import cv2
 from bitsandbytes.optim import AdamW8bit
-from .unified_dataset import gen_mask, gen_bbox, gen_points
-from ..utils.eval_with_pngs_with_align import test as eval_depth
-from ..utils.eval_normal import test as eval_normal
-from ..utils.eval_matting import test as eval_matting
+from trainers.unified_dataset import gen_mask, gen_bbox, gen_points
+from utils.eval_with_pngs_with_align import test as eval_depth
+from utils.eval_normal import test as eval_normal
+from utils.eval_matting import test as eval_matting
 # 2. 手动构造参数（完全对应你原来的命令行参数）
 # 原来的命令行：python eval_with_pngs_with_align.py --pred_path result/nyu_depth_v2/test --gt_path ../dataset/Eval/depth/nyuv2/test/ --max_depth_eval 10.0
 # 这里用argparse.Namespace把命令行参数转为对象，键对应--后的参数名，值对应你输入的内容
@@ -26,7 +26,17 @@ def find_latest_checkpoint(folder):
     # 提取步数并找到最大的那个
     latest_checkpoint = max(checkpoint_files, key=lambda x: int(x.split('-')[1].split('.')[0]))
     return os.path.join(folder, latest_checkpoint)
-
+def parse_flux_model_configs(root_path):
+    # given the root path, and then load the following: 
+    # text_encoder, text_encoder_2, tokenizer, tokenizer_2, transformer(a folder of 3 parts) / or flux1-kontext-dev.safetensors, vae
+    model_configs = []
+    _targets = ["flux1-kontext-dev.safetensors", "text_encoder/model.safetensors", "text_encoder_2","ae.safetensors"]
+    if "kontext" not in root_path.lower():
+        _targets = ["flux1-dev.safetensors", "text_encoder/model.safetensors", "text_encoder_2","ae.safetensors"]
+    for model_name in _targets:
+        model_path = os.path.join(root_path, model_name)
+        model_configs.append(ModelConfig(path=model_path))
+    return model_configs
 
 class ImageDataset(torch.utils.data.Dataset):
     def __init__(

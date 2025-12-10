@@ -1,5 +1,6 @@
-torch>=2.0.0
+torch>=2.4.0
 torchvision
+diffusers
 numpy
 opencv-python
 matplotlib
@@ -10,15 +11,15 @@ safetensors
 einops
 sentencepiece
 protobuf
-modelscope
 ftfy
 pynvml
-pandas
 accelerate
+bitsandbytes
 peft
+tqdm
 scipy
 scikit-image
 scikit-learn
-gradio
-tqdm
+pandas
+gradio==5.49.1
 gradio_imageslider

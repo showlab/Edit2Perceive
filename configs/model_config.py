@@ -183,26 +183,26 @@ model_loader_configs = [
 huggingface_model_loader_configs = [
     # These configs are provided for detecting model type automatically.
     # The format is (architecture_in_huggingface_config, huggingface_lib, model_name, redirected_architecture)
-    ("ChatGLMModel", "diffsynth.models.kolors_text_encoder", "kolors_text_encoder", None),
+    ("ChatGLMModel", "models.kolors_text_encoder", "kolors_text_encoder", None),
     ("MarianMTModel", "transformers.models.marian.modeling_marian", "translator", None),
     ("BloomForCausalLM", "transformers.models.bloom.modeling_bloom", "beautiful_prompt", None),
     ("Qwen2ForCausalLM", "transformers.models.qwen2.modeling_qwen2", "qwen_prompt", None),
     # ("LlamaForCausalLM", "transformers.models.llama.modeling_llama", "omost_prompt", None),
-    ("T5EncoderModel", "diffsynth.models.flux_text_encoder", "flux_text_encoder_2", "FluxTextEncoder2"),
-    ("CogVideoXTransformer3DModel", "diffsynth.models.cog_dit", "cog_dit", "CogDiT"),
+    ("T5EncoderModel", "models.flux_text_encoder", "flux_text_encoder_2", "FluxTextEncoder2"),
+    ("CogVideoXTransformer3DModel", "models.cog_dit", "cog_dit", "CogDiT"),
     ("SiglipModel", "transformers.models.siglip.modeling_siglip", "siglip_vision_model", "SiglipVisionModel"),
-    ("LlamaForCausalLM", "diffsynth.models.hunyuan_video_text_encoder", "hunyuan_video_text_encoder_2", "HunyuanVideoLLMEncoder"),
-    ("LlavaForConditionalGeneration", "diffsynth.models.hunyuan_video_text_encoder", "hunyuan_video_text_encoder_2", "HunyuanVideoMLLMEncoder"),
-    ("Step1Model", "diffsynth.models.stepvideo_text_encoder", "stepvideo_text_encoder_2", "STEP1TextEncoder"),
-    ("Qwen2_5_VLForConditionalGeneration", "diffsynth.models.qwenvl", "qwenvl", "Qwen25VL_7b_Embedder"),
+    ("LlamaForCausalLM", "models.hunyuan_video_text_encoder", "hunyuan_video_text_encoder_2", "HunyuanVideoLLMEncoder"),
+    ("LlavaForConditionalGeneration", "models.hunyuan_video_text_encoder", "hunyuan_video_text_encoder_2", "HunyuanVideoMLLMEncoder"),
+    ("Step1Model", "models.stepvideo_text_encoder", "stepvideo_text_encoder_2", "STEP1TextEncoder"),
+    ("Qwen2_5_VLForConditionalGeneration", "models.qwenvl", "qwenvl", "Qwen25VL_7b_Embedder"),
     # ("CLIPModel", "transformers.models.clip.modeling_clip", "clip_model", None),
     ("CLIPTextModel", "transformers.models.clip.modeling_clip", "clip_text_encoder", None),
     ("AutoencoderKL", "diffusers.models.autoencoders.autoencoder_kl", "vae", None),
-    ("AutoencoderKLQwenImage", "diffsynth.models.qwen_image_vae","qwen_image_vae", "QwenImageVAE"),
+    ("AutoencoderKLQwenImage", "models.qwen_image_vae","qwen_image_vae", "QwenImageVAE"),
     ("FluxTransformer2DModel", "diffusers.models.transformers.transformer_flux", "flux_transformer2dmodel", None),
     ("CLIPTokenizer", "transformers.models.clip.tokenization_clip", "clip_tokenizer", None),
     ("T5Tokenizer", "transformers.models.t5.tokenization_t5", "t5_tokenizer", None),
-    ("QwenImageTransformer2DModel", "diffsynth.models.qwen_image_dit", "qwen_image_dit", "QwenImageDiT"),
+    ("QwenImageTransformer2DModel", "models.qwen_image_dit", "qwen_image_dit", "QwenImageDiT"),
 ]
 patch_model_loader_configs = [
     # These configs are provided for detecting model type automatically.

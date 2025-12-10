@@ -182,7 +182,7 @@
 #     args = parser.parse_args()
 #     test(args)
 
-from diffsynth.utils.metric import compute_matting_metrics
+from utils.metric import compute_matting_metrics
 from PIL import Image
 import numpy as np
 import os
