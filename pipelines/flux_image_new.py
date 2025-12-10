@@ -25,7 +25,7 @@ from models.tiler import FastTileWorker
 # from models.nexus_gen import NexusGenAutoregressiveModel
 # from models.nexus_gen_projector import NexusGenAdapter, NexusGenImageEmbeddingMerger
 from utils import BasePipeline, ModelConfig, PipelineUnitRunner, PipelineUnit
-# from lora.flux_lora import FluxLoRALoader, FluxLoraPatcher, FluxLoRAFuser
+from lora.flux_lora import FluxLoRALoader, FluxLoraPatcher, FluxLoRAFuser
 
 from models.flux_dit import RMSNorm
 from vram_management import gradient_checkpoint_forward, enable_vram_management, AutoWrappedModule, AutoWrappedLinear
@@ -263,6 +263,61 @@ class FluxImagePipeline(BasePipeline):
                     merger_name = name.replace(".", "___")
                     if merger_name in self.lora_patcher.model_dict:
                         module.lora_merger = self.lora_patcher.model_dict[merger_name]
+
+        
+    def load_lora(
+        self,
+        module: torch.nn.Module,
+        lora_config: Union[ModelConfig, str] = None,
+        alpha=1,
+        hotload=False,
+        state_dict=None,
+    ):
+        if state_dict is None:
+            if isinstance(lora_config, str):
+                lora = load_state_dict(lora_config, torch_dtype=self.torch_dtype, device=self.device)
+            else:
+                lora_config.download_if_necessary()
+                lora = load_state_dict(lora_config.path, torch_dtype=self.torch_dtype, device=self.device)
+        else:
+            lora = state_dict
+        loader = FluxLoRALoader(torch_dtype=self.torch_dtype, device=self.device)
+        lora = loader.convert_state_dict(lora)
+        if hotload:
+            for name, module in module.named_modules():
+                if isinstance(module, AutoWrappedLinear):
+                    lora_a_name = f'{name}.lora_A.default.weight'
+                    lora_b_name = f'{name}.lora_B.default.weight'
+                    if lora_a_name in lora and lora_b_name in lora:
+                        module.lora_A_weights.append(lora[lora_a_name] * alpha)
+                        module.lora_B_weights.append(lora[lora_b_name])
+        else:
+            loader.load(module, lora, alpha=alpha)
+
+
+    def load_loras(
+        self,
+        module: torch.nn.Module,
+        lora_configs: list[Union[ModelConfig, str]],
+        alpha=1,
+        hotload=False,
+        extra_fused_lora=False,
+    ):
+        for lora_config in lora_configs:
+            self.load_lora(module, lora_config, hotload=hotload, alpha=alpha)
+        if extra_fused_lora:
+            lora_fuser = FluxLoRAFuser(device="cuda", torch_dtype=torch.bfloat16)
+            fused_lora = lora_fuser(lora_configs)
+            self.load_lora(module, state_dict=fused_lora, hotload=hotload, alpha=alpha)
+
+    
+    def clear_lora(self):
+        for name, module in self.named_modules():
+            if isinstance(module, AutoWrappedLinear): 
+                if hasattr(module, "lora_A_weights"):
+                    module.lora_A_weights.clear()
+                if hasattr(module, "lora_B_weights"):
+                    module.lora_B_weights.clear()
     
     
     def enable_vram_management(self, num_persistent_param_in_dit=None, vram_limit=None, vram_buffer=0.5):
@@ -739,11 +794,10 @@ class FluxImageUnit_LoRAEncode(PipelineUnit):
         return lora_configs
         
     def load_lora(self, lora_config, dtype, device):
-        # loader = FluxLoRALoader(torch_dtype=dtype, device=device)
-        # lora = load_state_dict(lora_config.path, torch_dtype=dtype, device=device)
-        # lora = loader.convert_state_dict(lora)
-        # return lora
-        pass
+        loader = FluxLoRALoader(torch_dtype=dtype, device=device)
+        lora = load_state_dict(lora_config.path, torch_dtype=dtype, device=device)
+        lora = loader.convert_state_dict(lora)
+        return lora
     
     def lora_embedding(self, pipe, lora_encoder_inputs):
         lora_emb = []

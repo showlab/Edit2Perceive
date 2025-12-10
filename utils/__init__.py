@@ -89,7 +89,7 @@ class BasePipeline(torch.nn.Module):
         image = vae_output
         if task == "depth" or task=="matting":
             # image = torch.mean(image, dim=-1) # for depth task, average the 3 channels to
-            image = ((image + 1.) / 2.).clip(-1,1) # for depth task, the output is in range [0, 1]
+            image = ((image + 1.) / 2.).clip(0,1) # for depth task, the output is in range [0, 1]
         elif task == "normal":
             image = image / (image.norm(dim=-1, keepdim=True) + 1e-8)
         # image = ((image + 1.) / 2.).clip(0.0, 1.0)
