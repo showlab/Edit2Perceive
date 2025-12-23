@@ -1,0 +1,3 @@
+scene0644_00/color/001300.jpg scene0644_00/depth/001300.png
+scene0685_00/color/000400.jpg scene0685_00/depth/000400.png
+scene0685_00/color/000400.jpg scene0685_00/depth/000400.png

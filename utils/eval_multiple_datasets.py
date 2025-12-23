@@ -4,7 +4,7 @@
 
 用法示例：
     python eval_multiple_datasets.py \
-        --model-root /mnt/nfs/share_model/FLUX.1-Kontext-dev \
+        --model-root ./FLUX.1-Kontext-dev \
         --state-dict models/train/kontext/bs64_mask/step-3200.safetensors \
         --datasets scannet,nyuv2 \
         --max-samples 800 \
@@ -25,13 +25,12 @@ import numpy as np
 from tqdm import tqdm
 from PIL import Image
 
-from diffsynth.pipelines.flux_image_new import FluxImagePipeline, ModelConfig
-from diffsynth import load_state_dict
-from diffsynth.trainers.unified_dataset import UnifiedDataset, gen_mask, gen_bbox, gen_points, gen_trimap
-from diffsynth.utils.eval_with_pngs_with_align import test as eval_depth
-from diffsynth.utils.eval_normal import test as eval_normal
-from diffsynth.utils.eval_matting import test as eval_matting
-from diffsynth.trainers.utils import parse_flux_model_configs
+from pipelines.flux_image_new import FluxImagePipeline, ModelConfig
+from models.utils import load_state_dict, parse_flux_model_configs
+from models.unified_dataset import UnifiedDataset, gen_mask, gen_bbox, gen_points, gen_trimap
+from utils.eval_depth import test as eval_depth
+from utils.eval_normal import test as eval_normal
+from utils.eval_matting import test as eval_matting
 
 @dataclass
 class DatasetConfig:
@@ -47,35 +46,35 @@ class DatasetConfig:
 DATASETS_DEPTH: List[DatasetConfig] = [
     DatasetConfig(
         name="nyuv2",
-        file_list="/mnt/nfs/workspace/syq/Marigold/data_split/nyu_depth/labeled/filename_list_test.txt",
+        file_list="./data_split/nyu_depth/labeled/filename_list_test.txt",
         gt_path="/mnt/nfs/workspace/syq/dataset/Eval/depth/nyuv2/",
         output_dir="result/nyuv2/",
         dataset_arg="nyu",
     ),
     DatasetConfig(
         name="kitti",
-        file_list="/mnt/nfs/workspace/syq/Marigold/data_split/kitti_depth/eigen_test_files_with_gt.txt",
+        file_list="./data_split/kitti_depth/eigen_test_files_with_gt.txt",
         gt_path="/mnt/nfs/workspace/syq/dataset/Eval/depth/kitti/",
         output_dir="result/kitti/",
         dataset_arg="kitti",
     ),
     DatasetConfig(
         name="eth3d",
-        file_list="/mnt/nfs/workspace/syq/Marigold/data_split/eth3d_depth/eth3d_filename_list.txt",
+        file_list="./data_split/eth3d_depth/eth3d_filename_list.txt",
         gt_path="/mnt/nfs/workspace/syq/dataset/Eval/depth/eth3d/",
         output_dir="result/eth3d/",
         dataset_arg="eth3d",
     ),
     DatasetConfig(
         name="scannet",
-        file_list="../Marigold/data_split/scannet_depth/scannet_val_sampled_list_800_1.txt",
+        file_list="./data_split/scannet_depth/scannet_val_sampled_list_800_1.txt",
         gt_path="/mnt/nfs/workspace/syq/dataset/Eval/depth/scannet",
         output_dir="result/scannet/",
         dataset_arg="scannet",
     ),
     DatasetConfig(
         name="diode",
-        file_list="/mnt/nfs/workspace/syq/Marigold/data_split/diode_depth/diode_val_all_filename_list.txt",
+        file_list="./data_split/diode_depth/diode_val_all_filename_list.txt",
         gt_path="/mnt/nfs/workspace/syq/dataset/Eval/depth/diode/",
         output_dir="result/diode/",
         dataset_arg="diode",
@@ -84,35 +83,35 @@ DATASETS_DEPTH: List[DatasetConfig] = [
 DATASETS_NORMAL: List[DatasetConfig] = [
     DatasetConfig(
         name="nyuv2",
-        file_list="/mnt/nfs/workspace/syq/Marigold/data_split/nyu_normals/nyuv2_test2.txt",
+        file_list="./data_split/nyu_normals/nyuv2_test2.txt",
         gt_path="/mnt/nfs/workspace/syq/dataset/Eval/normal/nyuv2/",
         output_dir="result/nyuv2_normal/",
         dataset_arg="nyu",
     ),
     DatasetConfig(
         name="scannet",
-        file_list="/mnt/nfs/workspace/syq/Marigold/data_split/scannet_normals/scannet_test.txt",
+        file_list="./data_split/scannet_normals/scannet_test.txt",
         gt_path="/mnt/nfs/workspace/syq/dataset/Eval/normal/scannet/",
         output_dir="result/scannet_normal/",
         dataset_arg="scannet",
     ),
     DatasetConfig(
         name="ibims",
-        file_list="/mnt/nfs/workspace/syq/Marigold/data_split/ibims_normals/ibims_test2.txt",
+        file_list="./data_split/ibims_normals/ibims_test2.txt",
         gt_path="/mnt/nfs/workspace/syq/dataset/Eval/normal/ibims/",
         output_dir="result/ibims_normal/",
         dataset_arg="ibims",
     ),
     DatasetConfig(
         name="diode",
-        file_list="/mnt/nfs/workspace/syq/Marigold/data_split/diode_normals/diode_test.txt",
+        file_list="./data_split/diode_normals/diode_test.txt",
         gt_path="/mnt/nfs/workspace/syq/dataset/Eval/normal/diode/",
         output_dir="result/diode_normal/",
         dataset_arg="diode",
     ),
     # DatasetConfig(
     #     name="oasis",
-    #     file_list="/mnt/nfs/workspace/syq/Marigold/data_split/oasis_normals/oasis_test2.txt",
+    #     file_list="./data_split/oasis_normals/oasis_test2.txt",
     #     gt_path="/mnt/nfs/workspace/syq/dataset/Eval/normal/oasis/",
     #     output_dir="result/oasis_normal/",
     #     dataset_arg="oasis",
@@ -122,14 +121,14 @@ DATASETS_NORMAL: List[DatasetConfig] = [
 DATASETS_MATTING: List[DatasetConfig] = [
     # DatasetConfig(
     #     name="comp",
-    #     file_list="/mnt/nfs/workspace/syq/Marigold/data_split/comp_matting/filenames_test.txt",
+    #     file_list="./data_split/comp_matting/filenames_test.txt",
     #     gt_path="/mnt/nfs/workspace/syq/dataset/matting/composition-1k",
     #     output_dir="result/comp_matting/",
     #     dataset_arg="comp",
     # ),
     # DatasetConfig(
     #     name="p3m",
-    #     file_list="/mnt/nfs/workspace/syq/Marigold/data_split/P3M_matting/filenames_val_P.txt",
+    #     file_list="./data_split/P3M_matting/filenames_val_P.txt",
     #     gt_path="/mnt/nfs/workspace/syq/dataset/matting/P3M-10k",
     #     output_dir="result/p3m_matting/",
     #     dataset_arg="p3m",
@@ -137,21 +136,21 @@ DATASETS_MATTING: List[DatasetConfig] = [
 
     DatasetConfig(
         name="aim",
-        file_list="/mnt/nfs/workspace/syq/Marigold/data_split/AIM_matting/filenames_val.txt",
+        file_list="./data_split/AIM_matting/filenames_val.txt",
         gt_path="/mnt/nfs/workspace/syq/dataset/matting/AIM-500",
         output_dir="result/aim_matting/",
         dataset_arg="aim",
     ),
     DatasetConfig(
         name="p3m-np",
-        file_list="/mnt/nfs/workspace/syq/Marigold/data_split/P3M_matting/filenames_val_NP.txt",
+        file_list="./data_split/P3M_matting/filenames_val_NP.txt",
         gt_path="/mnt/nfs/workspace/syq/dataset/matting/P3M-10k",
         output_dir="result/p3m_matting/",
         dataset_arg="p3m-np",
     ),
     DatasetConfig(
         name="am",
-        file_list="/mnt/nfs/workspace/syq/Marigold/data_split/AM_matting/filenames_val.txt",
+        file_list="./data_split/AM_matting/filenames_val.txt",
         gt_path="/mnt/nfs/workspace/syq/dataset/matting/AM-2k",
         output_dir="result/am_matting/",
         dataset_arg="am",
@@ -239,7 +238,7 @@ def evaluate_dataset(pipe,
         files = files[:max_samples]
     print(f"Total {len(files)} files for eval (dataset={ds_cfg.name})")
 
-    ds_cfg.output_dir = os.path.join(ds_cfg.output_dir, f"test_step{cur_step}")
+    # ds_cfg.output_dir = os.path.join(ds_cfg.output_dir, f"test_step{cur_step}")
     out_base = Path(ds_cfg.output_dir)
     out_base.mkdir(parents=True, exist_ok=True)
 
@@ -479,12 +478,12 @@ def evaluate_dataset(pipe,
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--cur_step", type=int, default=5700, help="当前评估的训练步数，用于结果目录命名")
-    parser.add_argument("--model_root", type=str, default="/mnt/nfs/share_model/FLUX.1-Kontext-dev", help="Flux model root directory")
+    parser.add_argument("--model_root", type=str, default="./FLUX.1-Kontext-dev", help="Flux model root directory")
     # parser.add_argument("--state_dict", type=str, default=f"models/train/kontext/bs64_mask/step-@@.safetensors", help="训练好的 state_dict path to load")
     # parser.add_argument("--state-dict", type=str, default=f"models/train/kontext/bs64_log_cons/step-{cur_step}.safetensors", help="训练好的 state_dict path to load")
     # parser.add_argument("--state_dict", type=str, default=f"models/train/kontext/bs64_sqrt_cons/step-@@.safetensors", help="训练好的 state_dict path to load")
     # parser.add_argument("--state-dict", type=str, default=f"models/train/kontext/bs64_sqrt_deter_zero/step-@@.safetensors", help="训练好的 state_dict path to load")
-    parser.add_argument("--state-dict", type=str, default=f"models/train/kontext_normal/bs16_flux_cons/step-@@.safetensors", help="训练好的 state_dict path to load")
+    parser.add_argument("--state_dict", type=str, default=f"models/train/kontext_normal/bs16_flux_cons/step-@@.safetensors", help="训练好的 state_dict path to load")
     # parser.add_argument("--state-dict", type=str, default=f"models/train/kontext_normal/bs16_cons/step-@@.safetensors", help="训练好的 state_dict path to load")
     # parser.add_argument("--state-dict", type=str, default=f"models/train/kontext_normal/bs16_deter_zero/step-@@.safetensors", help="训练好的 state_dict path to load")
     # parser.add_argument("--state-dict", type=str, default=f"models/train/kontext_matting/bs16_cons_mixSDMatte_points/step-@@.safetensors", help="训练好的 state_dict path to load")
@@ -501,14 +500,11 @@ def main():
     parser.add_argument("--hw", type=str, default="768x768")
     parser.add_argument("--inference_steps", type=int, default=1, help="推理时的采样步数")
     args = parser.parse_args()
-    cur_step = args.cur_step
-    print(args.state_dict)
-    args.state_dict = args.state_dict.replace("@@", str(cur_step))
     # 选择要跑的 datasets
-    if "normal" in args.state_dict:
-        args.task = "normal"
-    elif "matting" in args.state_dict:
-        args.task = "matting"
+    # if "normal" in args.state_dict:
+    #     args.task = "normal"
+    # elif "matting" in args.state_dict:
+    #     args.task = "matting"
     if args.task == "depth":
         DATASETS = DATASETS_DEPTH
     elif args.task == "normal":
@@ -555,7 +551,6 @@ def main():
             batch_size=args.batch_size, 
             max_samples=args.max_samples,
             inference_kwargs=inference_kwargs,
-            cur_step=cur_step,
             args=args,
         )
 

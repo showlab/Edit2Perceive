@@ -11,18 +11,10 @@ from tqdm import tqdm
 
 from typing_extensions import Literal
 
-from schedulers.flow_match import FlowMatchScheduler
+from models.flowmatch_scheduler import FlowMatchScheduler
 from prompters.flux_prompter import FluxPrompter
 from models import ModelManager, load_state_dict, SD3TextEncoder1, FluxTextEncoder2, FluxDiT, FluxVAEEncoder, FluxVAEDecoder
-# from models.step1x_connector import Qwen2Connector
-# from models.flux_controlnet import FluxControlNet
-# from models.flux_ipadapter import FluxIpAdapter
-# from models.flux_value_control import MultiValueEncoder
-# from models.flux_infiniteyou import InfiniteYouImageProjector
-# from models.flux_lora_encoder import FluxLoRAEncoder, LoRALayerBlock
 from models.tiler import FastTileWorker
-# from models.nexus_gen import NexusGenAutoregressiveModel
-# from models.nexus_gen_projector import NexusGenAdapter, NexusGenImageEmbeddingMerger
 from utils import BasePipeline, ModelConfig, PipelineUnitRunner, PipelineUnit
 from lora.flux_lora import FluxLoRALoader, FluxLoraPatcher, FluxLoRAFuser
 
@@ -125,7 +117,7 @@ class FluxImagePipeline(BasePipeline):
             height_division_factor=16, width_division_factor=16,
         )
         self.scheduler = FlowMatchScheduler()
-        self.prompter = FluxPrompter(tokenizer_1_path="/mnt/nfs/share_model/FLUX.1-Kontext-dev/tokenizer", tokenizer_2_path="/mnt/nfs/share_model/FLUX.1-Kontext-dev/tokenizer_2")
+        self.prompter = FluxPrompter(tokenizer_1_path="./FLUX.1-Kontext-dev/tokenizer", tokenizer_2_path="./FLUX.1-Kontext-dev/tokenizer_2")
         self.text_encoder_1: SD3TextEncoder1 = None
         self.text_encoder_2: FluxTextEncoder2 = None
         self.dit: FluxDiT = None
@@ -197,17 +189,10 @@ class FluxImagePipeline(BasePipeline):
             decoded = self.vae_decoder(pred, device=self.device)
             if inputs.get("extra_loss", None) == "cycle_consistency_normal_estimation":
                 cycle_consistency_loss = get_cycle_consistency_normal_loss(decoded,inputs["input_image"], inputs.get("mask", None),per_sample_weights=per_sample_weights)
-                # cycle_consistency_loss = cycle_consistency_loss.to(flow_loss.dtype)
-                # scale_factor = 2*cycle_consistency_loss.item()/(flow_loss.item()+1e-6)
             elif inputs.get("extra_loss", None) == "cycle_consistency_depth_estimation":
                 cycle_consistency_loss = get_cycle_consistency_depth_loss(decoded,inputs["input_image"], inputs.get("mask", None),depth_normalization=inputs.get("depth_normalization","log"))
-                # cycle_consistency_loss = get_depth_as_normal_loss(decoded,inputs["input_image"], inputs.get("mask", None))
-                # cycle_consistency_loss = self.ssi_loss(decoded,inputs["input_depth"], inputs.get("mask", None),inputs["depth_normalization"])
             elif inputs.get("extra_loss",None) == "cycle_consistency_matting_estimation":
                 cycle_consistency_loss = get_cycle_consistency_matting_loss(decoded,inputs["input_image"], inputs.get("trimap", None))
-                # scale_factor = 2*cycle_consistency_loss.item()/(flow_loss.item()+1e-6)
-            # flow_loss = flow_loss + cycle_consistency_loss /scale_factor
-            # flow_loss = cycle_consistency_loss.to(self.torch_dtype)
             # return flow_loss, cycle_consistency_loss
             return cycle_consistency_loss.to(torch.bfloat16)
         return flow_loss

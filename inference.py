@@ -7,12 +7,11 @@ import numpy as np
 from PIL import Image
 
 from pipelines.flux_image_new import FluxImagePipeline
-from models.utils import load_state_dict
-from trainers.unified_dataset import UnifiedDataset, gen_points
-# from utils.eval_multiple_datasets import parse_flux_model_configs
-from trainers.utils import parse_flux_model_configs
-import matplotlib.pyplot as plt
+from models.utils import load_state_dict,parse_flux_model_configs
+from models.unified_dataset import UnifiedDataset, gen_points
 from models.flux_dit import FluxDiTStateDictConverter
+
+import matplotlib.pyplot as plt
 converter = FluxDiTStateDictConverter()
 # 模型配置
 MODEL_CONFIGS = {
@@ -133,7 +132,7 @@ def inference(
 
 if __name__ == "__main__":
     # Please Change the model root path below to your own model directory
-    model_root = "/mnt/nfs/share_model/FLUX.1-Kontext-dev"
+    model_root = "./FLUX.1-Kontext-dev"
     
     inference(
         model_root=model_root,
