@@ -1,7 +1,7 @@
 from typing_extensions import Literal, TypeAlias
 
 # from models.sd_text_encoder import SDTextEncoder
-from models.sd_unet import SDUNet
+# from models.sd_unet_abc import SDUNet
 # from models.sd_vae_encoder import SDVAEEncoder
 # from models.sd_vae_decoder import SDVAEDecoder
 
@@ -12,7 +12,7 @@ from models.sd_unet import SDUNet
 
 # from models.sd3_text_encoder import SD3TextEncoder1, SD3TextEncoder2, SD3TextEncoder3
 from models.flux_text_encoder import SD3TextEncoder1
-from models.sd3_dit import SD3DiT
+# from models.sd3_dit_abc import SD3DiT
 # from models.sd3_vae_decoder import SD3VAEDecoder
 # from models.sd3_vae_encoder import SD3VAEEncoder
 
@@ -43,7 +43,7 @@ from models.flux_vae import FluxVAEEncoder, FluxVAEDecoder
 # from models.cog_vae import CogVAEEncoder, CogVAEDecoder
 # from models.cog_dit import CogDiT
 
-from models.omnigen import OmniGenTransformer
+# from models.abc import OmniGenTransformer
 
 # from models.hunyuan_video_vae_decoder import HunyuanVideoVAEDecoder
 # from models.hunyuan_video_vae_encoder import HunyuanVideoVAEEncoder
@@ -96,7 +96,7 @@ model_loader_configs = [
     # (None, "03343c606f16d834d6411d0902b53636", ["sd_text_encoder", "sd_unet", "sd_vae_decoder", "sd_vae_encoder"], [SDTextEncoder, SDUNet, SDVAEDecoder, SDVAEEncoder], "civitai"),
     # (None, "d4ba77a7ece070679b4a987f58f201e9", ["sd_text_encoder"], [SDTextEncoder], "civitai"),
     # (None, "d0c89e55c5a57cf3981def0cb1c9e65a", ["sd_vae_decoder", "sd_vae_encoder"], [SDVAEDecoder, SDVAEEncoder], "civitai"),
-    (None, "3926bf373b39a67eeafd7901478a47a7", ["sd_unet"], [SDUNet], "civitai"),
+    # (None, "3926bf373b39a67eeafd7901478a47a7", ["sd_unet"], [SDUNet], "civitai"),
     # (None, "1e0c39ec176b9007c05f76d52b554a4d", ["sd3_text_encoder_1", "sd3_text_encoder_2", "sd3_dit", "sd3_vae_encoder", "sd3_vae_decoder"], [SD3TextEncoder1, SD3TextEncoder2, SD3DiT, SD3VAEEncoder, SD3VAEDecoder], "civitai"),
     (None, "1e0c39ec176b9007c05f76d52b554a4d", ["sd3_text_encoder_1"], [SD3TextEncoder1], "civitai"),
     # (None, "d9e0290829ba8d98e28e1a2b1407db4a", ["sd3_text_encoder_1", "sd3_text_encoder_2", "sd3_text_encoder_3", "sd3_dit", "sd3_vae_encoder", "sd3_vae_decoder"], [SD3TextEncoder1, SD3TextEncoder2, SD3TextEncoder3, SD3DiT, SD3VAEEncoder, SD3VAEDecoder], "civitai"),
@@ -123,7 +123,7 @@ model_loader_configs = [
     # (None, "280189ee084bca10f70907bf6ce1649d", ["cog_vae_encoder", "cog_vae_decoder"], [CogVAEEncoder, CogVAEDecoder], "diffusers"),
     # (None, "9b9313d104ac4df27991352fec013fd4", ["rife"], [IFNet], "civitai"),
     # (None, "6b7116078c4170bfbeaedc8fe71f6649", ["esrgan"], [RRDBNet], "civitai"),
-    (None, "61cbcbc7ac11f169c5949223efa960d1", ["omnigen_transformer"], [OmniGenTransformer], "diffusers"),
+    # (None, "61cbcbc7ac11f169c5949223efa960d1", ["omnigen_transformer"], [OmniGenTransformer], "diffusers"),
     # (None, "78d18b9101345ff695f312e7e62538c0", ["flux_controlnet"], [FluxControlNet], "diffusers"),
     # (None, "b001c89139b5f053c715fe772362dd2a", ["flux_controlnet"], [FluxControlNet], "diffusers"),
     # (None, "52357cb26250681367488a8954c271e8", ["flux_controlnet"], [FluxControlNet], "diffusers"),

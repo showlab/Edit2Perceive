@@ -76,30 +76,34 @@ class GeneralLoRALoader:
         lora_name_dict = self.get_name_dict(state_dict_lora)
         self._current_lora_weights.clear()
         
-        for name, module in model.named_modules():
-            if name in lora_name_dict:
-                weight_up = state_dict_lora[lora_name_dict[name][0]].to(dtype=self.torch_dtype)
-                weight_down = state_dict_lora[lora_name_dict[name][1]].to(dtype=self.torch_dtype)
-                
-                # 保存原始 A/B 矩阵到 CPU（节省显存）
-                self._current_lora_weights[name] = (
-                    weight_up.cpu().clone(),
-                    weight_down.cpu().clone()
-                )
-                
-                # 临时移到 GPU 计算增量
-                weight_up_gpu = weight_up.to(device=self.device)
-                weight_down_gpu = weight_down.to(device=self.device)
-                weight_lora = self._compute_lora_delta(weight_up_gpu, weight_down_gpu, alpha)
-                
-                # 应用到模型
-                state_dict = module.state_dict()
-                state_dict["weight"] = state_dict["weight"].to(device=self.device, dtype=self.torch_dtype) + weight_lora
-                module.load_state_dict(state_dict)
-                
-                # 立即释放临时 GPU 张量
-                del weight_up_gpu, weight_down_gpu, weight_lora
-                updated_num += 1
+        for name, (up_key, down_key) in lora_name_dict.items():
+            try:
+                module = model.get_submodule(name)
+            except AttributeError:
+                continue
+            except Exception:
+                continue
+
+            weight_up = state_dict_lora[up_key].to(dtype=self.torch_dtype)
+            weight_down = state_dict_lora[down_key].to(dtype=self.torch_dtype)
+            
+            # 保存原始 A/B 矩阵到 CPU（节省显存）
+            self._current_lora_weights[name] = (
+                weight_up.cpu().clone(),
+                weight_down.cpu().clone()
+            )
+            
+            # 临时移到 GPU 计算增量
+            weight_up_gpu = weight_up.to(device=self.device)
+            weight_down_gpu = weight_down.to(device=self.device)
+            weight_lora = self._compute_lora_delta(weight_up_gpu, weight_down_gpu, alpha)
+            
+            # 应用到模型
+            module.weight.data += weight_lora
+            
+            # 立即释放临时 GPU 张量
+            del weight_up_gpu, weight_down_gpu, weight_lora
+            updated_num += 1
         
         self._current_alpha = alpha
         self._lora_loaded = True
@@ -119,23 +123,25 @@ class GeneralLoRALoader:
             return
         
         unloaded_num = 0
-        for name, module in model.named_modules():
-            if name in self._current_lora_weights:
-                weight_up, weight_down = self._current_lora_weights[name]
+        for name, (weight_up, weight_down) in self._current_lora_weights.items():
+            try:
+                module = model.get_submodule(name)
+            except AttributeError:
+                continue
+            except Exception:
+                continue
                 
-                # 临时移到 GPU 计算增量
-                weight_up_gpu = weight_up.to(device=self.device, dtype=self.torch_dtype)
-                weight_down_gpu = weight_down.to(device=self.device, dtype=self.torch_dtype)
-                weight_delta = self._compute_lora_delta(weight_up_gpu, weight_down_gpu, self._current_alpha)
-                
-                # 减去增量恢复原始权重
-                state_dict = module.state_dict()
-                state_dict["weight"] = state_dict["weight"].to(device=self.device, dtype=self.torch_dtype) - weight_delta
-                module.load_state_dict(state_dict)
-                
-                # 立即释放临时 GPU 张量
-                del weight_up_gpu, weight_down_gpu, weight_delta
-                unloaded_num += 1
+            # 临时移到 GPU 计算增量
+            weight_up_gpu = weight_up.to(device=self.device, dtype=self.torch_dtype)
+            weight_down_gpu = weight_down.to(device=self.device, dtype=self.torch_dtype)
+            weight_delta = self._compute_lora_delta(weight_up_gpu, weight_down_gpu, self._current_alpha)
+            
+            # 减去增量恢复原始权重
+            module.weight.data -= weight_delta
+            
+            # 立即释放临时 GPU 张量
+            del weight_up_gpu, weight_down_gpu, weight_delta
+            unloaded_num += 1
         
         self._current_lora_weights.clear()
         self._current_alpha = 0.0

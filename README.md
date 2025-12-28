@@ -163,7 +163,10 @@ If you have any questions, please feel free to contact yqshi@stu.pku.edu.cn -->
 > **Abstract:** We present **Edit2Perceive**, a unified framework for diverse dense prediction tasks. We demonstrate that image editing diffusion models (specifically FLUX.1 Kontext), rather than text-to-image generators, provide a better inductive bias for deterministic dense perception. Our model achieves state-of-the-art performance across **Zero-shot Monocular Depth Estimation**, **Surface Normal Estimation**, and **Interactive Matting**, supporting efficient single-step deterministic inference.
 
 ---
+## 📰 News
+**Dec 19, 2025** Inference Code Release, with model weights
 
+**Dec 23, 2025** Training Code Release
 ## 🛠️ Installation
 
 ### 1. Environment Setup
